@@ -1,0 +1,104 @@
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Payments</h1>
+</div>
+
+<!-- Filters -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="GET" action="/payments" class="row g-3">
+            <div class="col-md-3">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="all" <%= filterStatus === 'all' ? 'selected' : '' %>>All Statuses</option>
+                    <option value="SUCCESS" <%= filterStatus === 'SUCCESS' ? 'selected' : '' %>>Success</option>
+                    <option value="PENDING" <%= filterStatus === 'PENDING' ? 'selected' : '' %>>Pending</option>
+                    <option value="FAILED" <%= filterStatus === 'FAILED' ? 'selected' : '' %>>Failed</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Transaction ID</th>
+                        <th>Customer</th>
+                        <th>Phone</th>
+                        <th>Device</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (payments.length === 0) { %>
+                        <tr>
+                            <td colspan="9" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                                <p class="mt-2">No payments found</p>
+                            </td>
+                        </tr>
+                    <% } else { %>
+                        <% payments.forEach(payment => { %>
+                            <tr>
+                                <td><code><%= payment.transaction_id %></code></td>
+                                <td><%= payment.customer_name %></td>
+                                <td><%= payment.phone %></td>
+                                <td><%= payment.device_model %></td>
+                                <td><strong>KES <%= parseFloat(payment.amount).toLocaleString() %></strong></td>
+                                <td><%= payment.payment_method %></td>
+                                <td>
+                                    <% if (payment.status === 'SUCCESS') { %>
+                                        <span class="badge bg-success">Success</span>
+                                    <% } else if (payment.status === 'PENDING') { %>
+                                        <span class="badge bg-warning">Pending</span>
+                                    <% } else if (payment.status === 'FAILED') { %>
+                                        <span class="badge bg-danger">Failed</span>
+                                    <% } else { %>
+                                        <span class="badge bg-secondary"><%= payment.status %></span>
+                                    <% } %>
+                                </td>
+                                <td><%= new Date(payment.timestamp).toLocaleString() %></td>
+                                <td>
+                                    <a href="/payments/<%= payment.transaction_id %>" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        <% if (totalPages > 1) { %>
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                        <a class="page-link" href="?page=<%= currentPage - 1 %>&status=<%= filterStatus %>">Previous</a>
+                    </li>
+                    <% for (let i = 1; i <= Math.min(totalPages, 10); i++) { %>
+                        <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                            <a class="page-link" href="?page=<%= i %>&status=<%= filterStatus %>"><%= i %></a>
+                        </li>
+                    <% } %>
+                    <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                        <a class="page-link" href="?page=<%= currentPage + 1 %>&status=<%= filterStatus %>">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        <% } %>
+    </div>
+</div>

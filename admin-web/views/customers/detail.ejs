@@ -1,0 +1,172 @@
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Customer Details</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="/customers" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Customers
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">Customer Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <th width="40%">Customer ID:</th>
+                        <td><%= customer.customer_id %></td>
+                    </tr>
+                    <tr>
+                        <th>Name:</th>
+                        <td><%= customer.name %></td>
+                    </tr>
+                    <tr>
+                        <th>Phone:</th>
+                        <td><%= customer.phone %></td>
+                    </tr>
+                    <tr>
+                        <th>Email:</th>
+                        <td><%= customer.email || 'N/A' %></td>
+                    </tr>
+                    <tr>
+                        <th>ID Number:</th>
+                        <td><%= customer.id_number %></td>
+                    </tr>
+                    <tr>
+                        <th>Address:</th>
+                        <td><%= customer.address || 'N/A' %></td>
+                    </tr>
+                    <tr>
+                        <th>Registered:</th>
+                        <td><%= new Date(customer.created_at).toLocaleString() %></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-6 mb-3">
+                        <h3 class="text-primary"><%= devices.length %></h3>
+                        <p class="text-muted mb-0">Total Devices</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h3 class="text-success"><%= recentPayments.length %></h3>
+                        <p class="text-muted mb-0">Recent Payments</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Customer Devices -->
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="mb-0">Devices</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>IMEI</th>
+                        <th>Device Model</th>
+                        <th>Status</th>
+                        <th>Registration Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (devices.length === 0) { %>
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">No devices registered</td>
+                        </tr>
+                    <% } else { %>
+                        <% devices.forEach(device => { %>
+                            <tr>
+                                <td><code><%= device.imei %></code></td>
+                                <td><%= device.device_model %></td>
+                                <td>
+                                    <% if (device.status === 'ACTIVE') { %>
+                                        <span class="badge bg-success">Active</span>
+                                    <% } else if (device.status === 'LOCKED') { %>
+                                        <span class="badge bg-danger">Locked</span>
+                                    <% } else if (device.status === 'PAID_OFF') { %>
+                                        <span class="badge bg-info">Paid Off</span>
+                                    <% } else { %>
+                                        <span class="badge bg-secondary"><%= device.status %></span>
+                                    <% } %>
+                                </td>
+                                <td><%= new Date(device.registration_date).toLocaleDateString() %></td>
+                                <td>
+                                    <a href="/devices/<%= device.device_id %>" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Payments -->
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="mb-0">Recent Payments</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Transaction ID</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (recentPayments.length === 0) { %>
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">No payments yet</td>
+                        </tr>
+                    <% } else { %>
+                        <% recentPayments.forEach(payment => { %>
+                            <tr>
+                                <td><code><%= payment.transaction_id %></code></td>
+                                <td>KES <%= parseFloat(payment.amount).toLocaleString() %></td>
+                                <td><%= payment.payment_method %></td>
+                                <td>
+                                    <% if (payment.status === 'SUCCESS') { %>
+                                        <span class="badge bg-success">Success</span>
+                                    <% } else if (payment.status === 'PENDING') { %>
+                                        <span class="badge bg-warning">Pending</span>
+                                    <% } else if (payment.status === 'FAILED') { %>
+                                        <span class="badge bg-danger">Failed</span>
+                                    <% } else { %>
+                                        <span class="badge bg-secondary"><%= payment.status %></span>
+                                    <% } %>
+                                </td>
+                                <td><%= new Date(payment.timestamp).toLocaleString() %></td>
+                            </tr>
+                        <% }); %>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

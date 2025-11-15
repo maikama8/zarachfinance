@@ -1,0 +1,21 @@
+<nav class="navbar navbar-dark bg-dark fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/dashboard">
+            <i class="bi bi-shield-lock"></i> Zaracfinance Admin
+        </a>
+        <div class="d-flex align-items-center">
+            <span class="text-white me-3">
+                <i class="bi bi-person-circle"></i> <%= user.username %>
+            </span>
+            <a href="/auth/logout" class="btn btn-outline-light btn-sm">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
+        </div>
+    </div>
+</nav>
+
+<style>
+body {
+    padding-top: 56px;
+}
+</style>

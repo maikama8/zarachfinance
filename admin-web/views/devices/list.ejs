@@ -1,0 +1,101 @@
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Devices</h1>
+</div>
+
+<!-- Filters -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="GET" action="/devices" class="row g-3">
+            <div class="col-md-3">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="">All Statuses</option>
+                    <option value="ACTIVE" <%= filters.status === 'ACTIVE' ? 'selected' : '' %>>Active</option>
+                    <option value="LOCKED" <%= filters.status === 'LOCKED' ? 'selected' : '' %>>Locked</option>
+                    <option value="PAID_OFF" <%= filters.status === 'PAID_OFF' ? 'selected' : '' %>>Paid Off</option>
+                    <option value="PENDING" <%= filters.status === 'PENDING' ? 'selected' : '' %>>Pending</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label for="search" class="form-label">Search</label>
+                <input type="text" class="form-control" id="search" name="search" 
+                       placeholder="IMEI, Customer Name, Phone..." value="<%= filters.search || '' %>">
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="bi bi-search"></i> Filter
+                </button>
+                <a href="/devices" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Clear
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Devices Table -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>IMEI</th>
+                        <th>Device Model</th>
+                        <th>Customer</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Total Amount</th>
+                        <th>Remaining</th>
+                        <th>Registration Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (devices.length === 0) { %>
+                        <tr>
+                            <td colspan="9" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                                <p class="mt-2">No devices found</p>
+                            </td>
+                        </tr>
+                    <% } else { %>
+                        <% devices.forEach(device => { %>
+                            <tr>
+                                <td><code><%= device.imei %></code></td>
+                                <td><%= device.device_model %></td>
+                                <td><%= device.customer_name %></td>
+                                <td><%= device.phone %></td>
+                                <td>
+                                    <% if (device.status === 'ACTIVE') { %>
+                                        <span class="badge bg-success">Active</span>
+                                    <% } else if (device.status === 'LOCKED') { %>
+                                        <span class="badge bg-danger">Locked</span>
+                                    <% } else if (device.status === 'PAID_OFF') { %>
+                                        <span class="badge bg-info">Paid Off</span>
+                                    <% } else { %>
+                                        <span class="badge bg-secondary"><%= device.status %></span>
+                                    <% } %>
+                                </td>
+                                <td>KES <%= device.total_amount ? parseFloat(device.total_amount).toLocaleString() : '0' %></td>
+                                <td>
+                                    <% if (device.remaining_amount > 0) { %>
+                                        <span class="text-danger">KES <%= parseFloat(device.remaining_amount).toLocaleString() %></span>
+                                    <% } else { %>
+                                        <span class="text-success">Paid</span>
+                                    <% } %>
+                                </td>
+                                <td><%= new Date(device.registration_date).toLocaleDateString() %></td>
+                                <td>
+                                    <a href="/devices/<%= device.device_id %>" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

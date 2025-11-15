@@ -1,0 +1,185 @@
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Dashboard</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-calendar"></i> Today
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Active Devices</h6>
+                        <h2 class="mb-0"><%= stats.active_devices %></h2>
+                    </div>
+                    <i class="bi bi-phone" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Locked Devices</h6>
+                        <h2 class="mb-0"><%= stats.locked_devices %></h2>
+                    </div>
+                    <i class="bi bi-lock-fill" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Paid Off</h6>
+                        <h2 class="mb-0"><%= stats.paid_off_devices %></h2>
+                    </div>
+                    <i class="bi bi-check-circle-fill" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Total Customers</h6>
+                        <h2 class="mb-0"><%= stats.total_customers %></h2>
+                    </div>
+                    <i class="bi bi-people-fill" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Statistics -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title text-muted">Today's Payments</h6>
+                <h3 class="text-success">KES <%= parseFloat(stats.today_payments).toLocaleString() %></h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title text-muted">This Month</h6>
+                <h3 class="text-primary">KES <%= parseFloat(stats.month_payments).toLocaleString() %></h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title text-muted">Overdue Payments</h6>
+                <h3 class="text-danger"><%= stats.overdue_payments %></h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Devices</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Device</th>
+                                <th>Customer</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% recentDevices.forEach(device => { %>
+                                <tr>
+                                    <td>
+                                        <a href="/devices/<%= device.device_id %>">
+                                            <%= device.device_model %>
+                                        </a>
+                                    </td>
+                                    <td><%= device.customer_name %></td>
+                                    <td>
+                                        <% if (device.status === 'ACTIVE') { %>
+                                            <span class="badge bg-success">Active</span>
+                                        <% } else if (device.status === 'LOCKED') { %>
+                                            <span class="badge bg-danger">Locked</span>
+                                        <% } else if (device.status === 'PAID_OFF') { %>
+                                            <span class="badge bg-info">Paid Off</span>
+                                        <% } else { %>
+                                            <span class="badge bg-secondary"><%= device.status %></span>
+                                        <% } %>
+                                    </td>
+                                    <td><%= new Date(device.registration_date).toLocaleDateString() %></td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Payments</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% recentPayments.forEach(payment => { %>
+                                <tr>
+                                    <td><%= payment.customer_name %></td>
+                                    <td>KES <%= parseFloat(payment.amount).toLocaleString() %></td>
+                                    <td>
+                                        <% if (payment.status === 'SUCCESS') { %>
+                                            <span class="badge bg-success">Success</span>
+                                        <% } else if (payment.status === 'PENDING') { %>
+                                            <span class="badge bg-warning">Pending</span>
+                                        <% } else if (payment.status === 'FAILED') { %>
+                                            <span class="badge bg-danger">Failed</span>
+                                        <% } else { %>
+                                            <span class="badge bg-secondary"><%= payment.status %></span>
+                                        <% } %>
+                                    </td>
+                                    <td><%= new Date(payment.timestamp).toLocaleDateString() %></td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

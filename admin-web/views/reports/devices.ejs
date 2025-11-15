@@ -1,0 +1,137 @@
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Device Reports</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="/reports" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Reports
+        </a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Device Status Distribution -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Device Status Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="statusChart"></canvas>
+                <div class="table-responsive mt-3">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Count</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% 
+                            const totalDevices = statusStats.reduce((sum, stat) => sum + parseInt(stat.count), 0);
+                            statusStats.forEach(stat => { 
+                                const percentage = totalDevices > 0 ? (stat.count / totalDevices * 100).toFixed(1) : 0;
+                            %>
+                                <tr>
+                                    <td><%= stat.status %></td>
+                                    <td><%= stat.count %></td>
+                                    <td><%= percentage %>%</td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Manufacturers -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Top Manufacturers</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="manufacturerChart"></canvas>
+                <div class="table-responsive mt-3">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Manufacturer</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% manufacturerStats.forEach(stat => { %>
+                                <tr>
+                                    <td><%= stat.manufacturer %></td>
+                                    <td><%= stat.count %></td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Status Chart
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: <%= JSON.stringify(statusStats.map(s => s.status)) %>,
+        datasets: [{
+            data: <%= JSON.stringify(statusStats.map(s => s.count)) %>,
+            backgroundColor: [
+                '#28a745',
+                '#dc3545',
+                '#17a2b8',
+                '#ffc107',
+                '#6c757d'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Manufacturer Chart
+const mfgCtx = document.getElementById('manufacturerChart').getContext('2d');
+new Chart(mfgCtx, {
+    type: 'bar',
+    data: {
+        labels: <%= JSON.stringify(manufacturerStats.map(s => s.manufacturer)) %>,
+        datasets: [{
+            label: 'Number of Devices',
+            data: <%= JSON.stringify(manufacturerStats.map(s => s.count)) %>,
+            backgroundColor: '#007bff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+</script>

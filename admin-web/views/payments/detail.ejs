@@ -1,0 +1,104 @@
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Payment Details</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="/payments" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Payments
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">Transaction Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <th width="40%">Transaction ID:</th>
+                        <td><code><%= payment.transaction_id %></code></td>
+                    </tr>
+                    <tr>
+                        <th>Amount:</th>
+                        <td><strong class="text-success">KES <%= parseFloat(payment.amount).toLocaleString() %></strong></td>
+                    </tr>
+                    <tr>
+                        <th>Payment Method:</th>
+                        <td><%= payment.payment_method %></td>
+                    </tr>
+                    <tr>
+                        <th>Status:</th>
+                        <td>
+                            <% if (payment.status === 'SUCCESS') { %>
+                                <span class="badge bg-success">Success</span>
+                            <% } else if (payment.status === 'PENDING') { %>
+                                <span class="badge bg-warning">Pending</span>
+                            <% } else if (payment.status === 'FAILED') { %>
+                                <span class="badge bg-danger">Failed</span>
+                            <% } else { %>
+                                <span class="badge bg-secondary"><%= payment.status %></span>
+                            <% } %>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Timestamp:</th>
+                        <td><%= new Date(payment.timestamp).toLocaleString() %></td>
+                    </tr>
+                    <tr>
+                        <th>Reference:</th>
+                        <td><%= payment.reference || 'N/A' %></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">Customer Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <th width="40%">Name:</th>
+                        <td><%= payment.customer_name %></td>
+                    </tr>
+                    <tr>
+                        <th>Phone:</th>
+                        <td><%= payment.phone %></td>
+                    </tr>
+                    <tr>
+                        <th>Email:</th>
+                        <td><%= payment.email || 'N/A' %></td>
+                    </tr>
+                </table>
+                <a href="/customers/<%= payment.customer_id %>" class="btn btn-sm btn-primary">
+                    <i class="bi bi-person"></i> View Customer
+                </a>
+            </div>
+        </div>
+        
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">Device Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <th width="40%">Device Model:</th>
+                        <td><%= payment.device_model %></td>
+                    </tr>
+                    <tr>
+                        <th>IMEI:</th>
+                        <td><code><%= payment.imei %></code></td>
+                    </tr>
+                </table>
+                <a href="/devices/<%= payment.device_id %>" class="btn btn-sm btn-primary">
+                    <i class="bi bi-phone"></i> View Device
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

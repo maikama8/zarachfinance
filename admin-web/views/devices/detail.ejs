@@ -1,0 +1,300 @@
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Device Details</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="/devices" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Devices
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Device Information -->
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">Device Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <th width="40%">IMEI:</th>
+                        <td><code><%= device.imei %></code></td>
+                    </tr>
+                    <tr>
+                        <th>Device Model:</th>
+                        <td><%= device.device_model %></td>
+                    </tr>
+                    <tr>
+                        <th>Manufacturer:</th>
+                        <td><%= device.manufacturer %></td>
+                    </tr>
+                    <tr>
+                        <th>Status:</th>
+                        <td>
+                            <% if (device.status === 'ACTIVE') { %>
+                                <span class="badge bg-success">Active</span>
+                            <% } else if (device.status === 'LOCKED') { %>
+                                <span class="badge bg-danger">Locked</span>
+                            <% } else if (device.status === 'PAID_OFF') { %>
+                                <span class="badge bg-info">Paid Off</span>
+                            <% } else { %>
+                                <span class="badge bg-secondary"><%= device.status %></span>
+                            <% } %>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Registration Date:</th>
+                        <td><%= new Date(device.registration_date).toLocaleString() %></td>
+                    </tr>
+                    <tr>
+                        <th>Last Sync:</th>
+                        <td><%= device.last_sync ? new Date(device.last_sync).toLocaleString() : 'Never' %></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Customer Information -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">Customer Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <th width="40%">Name:</th>
+                        <td><%= device.customer_name %></td>
+                    </tr>
+                    <tr>
+                        <th>Phone:</th>
+                        <td><%= device.phone %></td>
+                    </tr>
+                    <tr>
+                        <th>Email:</th>
+                        <td><%= device.email || 'N/A' %></td>
+                    </tr>
+                </table>
+                <a href="/customers/<%= device.customer_id %>" class="btn btn-sm btn-primary">
+                    <i class="bi bi-person"></i> View Customer Profile
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Information & Actions -->
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">Payment Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <th width="40%">Total Amount:</th>
+                        <td><strong>KES <%= device.total_amount ? parseFloat(device.total_amount).toLocaleString() : '0' %></strong></td>
+                    </tr>
+                    <tr>
+                        <th>Paid Amount:</th>
+                        <td class="text-success">KES <%= device.paid_amount ? parseFloat(device.paid_amount).toLocaleString() : '0' %></td>
+                    </tr>
+                    <tr>
+                        <th>Remaining:</th>
+                        <td class="<%= device.remaining_amount > 0 ? 'text-danger' : 'text-success' %>">
+                            KES <%= device.remaining_amount ? parseFloat(device.remaining_amount).toLocaleString() : '0' %>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Payment Frequency:</th>
+                        <td><%= device.frequency || 'N/A' %></td>
+                    </tr>
+                </table>
+                
+                <div class="progress mb-3" style="height: 25px;">
+                    <% const progress = device.total_amount > 0 ? (device.paid_amount / device.total_amount * 100) : 0; %>
+                    <div class="progress-bar bg-success" role="progressbar" 
+                         style="width: <%= progress %>%;" 
+                         aria-valuenow="<%= progress %>" aria-valuemin="0" aria-valuemax="100">
+                        <%= progress.toFixed(1) %>%
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">Actions</h5>
+            </div>
+            <div class="card-body">
+                <% if (device.status === 'ACTIVE') { %>
+                    <button class="btn btn-danger w-100 mb-2" onclick="lockDevice('<%= device.device_id %>')">
+                        <i class="bi bi-lock-fill"></i> Lock Device
+                    </button>
+                <% } else if (device.status === 'LOCKED') { %>
+                    <button class="btn btn-success w-100 mb-2" onclick="unlockDevice('<%= device.device_id %>')">
+                        <i class="bi bi-unlock-fill"></i> Unlock Device
+                    </button>
+                <% } %>
+                
+                <% if (device.remaining_amount <= 0) { %>
+                    <button class="btn btn-primary w-100 mb-2" onclick="generateReleaseCode('<%= device.device_id %>')">
+                        <i class="bi bi-key-fill"></i> Generate Release Code
+                    </button>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Payments -->
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="mb-0">Recent Payments</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Transaction ID</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (payments.length === 0) { %>
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">No payments yet</td>
+                        </tr>
+                    <% } else { %>
+                        <% payments.forEach(payment => { %>
+                            <tr>
+                                <td><code><%= payment.transaction_id %></code></td>
+                                <td>KES <%= parseFloat(payment.amount).toLocaleString() %></td>
+                                <td><%= payment.payment_method %></td>
+                                <td>
+                                    <% if (payment.status === 'SUCCESS') { %>
+                                        <span class="badge bg-success">Success</span>
+                                    <% } else if (payment.status === 'PENDING') { %>
+                                        <span class="badge bg-warning">Pending</span>
+                                    <% } else if (payment.status === 'FAILED') { %>
+                                        <span class="badge bg-danger">Failed</span>
+                                    <% } else { %>
+                                        <span class="badge bg-secondary"><%= payment.status %></span>
+                                    <% } %>
+                                </td>
+                                <td><%= new Date(payment.timestamp).toLocaleString() %></td>
+                            </tr>
+                        <% }); %>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Location History -->
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="mb-0">Location History</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Latitude</th>
+                        <th>Longitude</th>
+                        <th>Accuracy</th>
+                        <th>Timestamp</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (locations.length === 0) { %>
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">No location data available</td>
+                        </tr>
+                    <% } else { %>
+                        <% locations.forEach(location => { %>
+                            <tr>
+                                <td><%= location.latitude %></td>
+                                <td><%= location.longitude %></td>
+                                <td><%= location.accuracy %>m</td>
+                                <td><%= new Date(location.timestamp).toLocaleString() %></td>
+                                <td>
+                                    <a href="https://www.google.com/maps?q=<%= location.latitude %>,<%= location.longitude %>" 
+                                       target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-geo-alt"></i> View on Map
+                                    </a>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function lockDevice(deviceId) {
+    if (!confirm('Are you sure you want to lock this device?')) return;
+    
+    fetch(`/devices/${deviceId}/lock`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: 'Manual lock by admin' })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('Device locked successfully');
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(err => alert('Error: ' + err.message));
+}
+
+function unlockDevice(deviceId) {
+    if (!confirm('Are you sure you want to unlock this device?')) return;
+    
+    fetch(`/devices/${deviceId}/unlock`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('Device unlocked successfully');
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(err => alert('Error: ' + err.message));
+}
+
+function generateReleaseCode(deviceId) {
+    if (!confirm('Generate release code for this device?')) return;
+    
+    fetch(`/devices/${deviceId}/generate-release-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert(`Release Code Generated:\n\n${data.code}\n\nExpires: ${new Date(data.expiryDate).toLocaleString()}`);
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(err => alert('Error: ' + err.message));
+}
+</script>
