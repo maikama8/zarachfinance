@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Management - ZarFinance</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+        }
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background: #2c3e50;
+            color: white;
+            padding: 20px 0;
+            overflow-y: auto;
+        }
+        .sidebar .logo {
+            padding: 0 20px 30px;
+            border-bottom: 1px solid #34495e;
+            margin-bottom: 20px;
+        }
+        .sidebar nav a {
+            display: block;
+            padding: 15px 20px;
+            color: #ecf0f1;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        .sidebar nav a:hover, .sidebar nav a.active {
+            background: #34495e;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .search-bar input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .search-bar button {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .actions-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-success { background: #27ae60; color: white; }
+        table {
+            width: 100%;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        th {
+            background: #34495e;
+            color: white;
+        }
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-verified { background: #27ae60; color: white; }
+        .badge-pending { background: #f39c12; color: white; }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <h2>ZarFinance</h2>
+        </div>
+        <nav>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/devices">Devices</a>
+            <a href="/customers" class="active">Customers</a>
+            <a href="/payments">Payments</a>
+            <a href="/analytics">Analytics</a>
+            <a href="/plans">Financing Plans</a>
+            <a href="/support">Support Tickets</a>
+            <a href="/users">User Management</a>
+            <a href="/settings">Settings</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1>Customer Management</h1>
+            <button class="btn btn-primary" onclick="showAddCustomerModal()">+ Add Customer</button>
+        </div>
+
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search by name, email, phone, or customer ID..." onkeyup="searchCustomers()">
+            <button onclick="searchCustomers()">Search</button>
+        </div>
+
+        <div class="actions-bar">
+            <button class="btn btn-success" onclick="exportCustomers()">Export to Excel</button>
+            <button class="btn btn-primary" onclick="bulkAssignDevices()">Bulk Assign Devices</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Customer ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>KYC Status</th>
+                    <th>Devices</th>
+                    <th>Risk Score</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="customersTable">
+                <tr><td colspan="8">Loading...</td></tr>
+            </tbody>
+        </table>
+
+        <div id="pagination"></div>
+    </div>
+
+    <!-- Add Customer Modal -->
+    <div id="addCustomerModal" class="modal">
+        <div class="modal-content">
+            <h2>Add New Customer</h2>
+            <form id="addCustomerForm">
+                <div class="form-group">
+                    <label>First Name *</label>
+                    <input type="text" name="firstName" required>
+                </div>
+                <div class="form-group">
+                    <label>Last Name *</label>
+                    <input type="text" name="lastName" required>
+                </div>
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone *</label>
+                    <input type="tel" name="phone" required>
+                </div>
+                <div class="form-group">
+                    <label>Alternate Phone</label>
+                    <input type="tel" name="alternatePhone">
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <textarea name="address" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>KYC ID Type</label>
+                    <select name="idType">
+                        <option value="">Select...</option>
+                        <option value="NIN">NIN</option>
+                        <option value="Driver License">Driver License</option>
+                        <option value="International Passport">International Passport</option>
+                        <option value="Voter Card">Voter Card</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>ID Number</label>
+                    <input type="text" name="idNumber">
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary">Create Customer</button>
+                    <button type="button" class="btn" onclick="closeModal('addCustomerModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        let searchQuery = '';
+
+        async function loadCustomers(page = 1) {
+            try {
+                const params = new URLSearchParams({ page, limit: 50 });
+                if (searchQuery) params.append('search', searchQuery);
+
+                const response = await fetch(`/api/customer?${params}`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+
+                renderCustomers(data.customers);
+                renderPagination(data.totalPages, data.currentPage);
+            } catch (error) {
+                console.error('Error loading customers:', error);
+            }
+        }
+
+        function renderCustomers(customers) {
+            const tbody = document.getElementById('customersTable');
+            if (customers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8">No customers found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = customers.map(customer => `
+                <tr>
+                    <td>${customer.customerId}</td>
+                    <td>${customer.firstName} ${customer.lastName}</td>
+                    <td>${customer.email}</td>
+                    <td>${customer.phone}</td>
+                    <td>
+                        <span class="badge ${customer.kycData?.verified ? 'badge-verified' : 'badge-pending'}">
+                            ${customer.kycData?.verified ? 'Verified' : 'Pending'}
+                        </span>
+                    </td>
+                    <td>${customer.assignedDevices?.length || 0}</td>
+                    <td>${customer.riskScore || 0}</td>
+                    <td>
+                        <button onclick="viewCustomer('${customer._id}')">View</button>
+                        <button onclick="editCustomer('${customer._id}')">Edit</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderPagination(totalPages, current) {
+            const pagination = document.getElementById('pagination');
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+
+            let html = '<div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">';
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<button class="btn ${i === current ? 'btn-primary' : ''}" onclick="loadCustomers(${i})">${i}</button>`;
+            }
+            html += '</div>';
+            pagination.innerHTML = html;
+        }
+
+        function searchCustomers() {
+            searchQuery = document.getElementById('searchInput').value;
+            loadCustomers(1);
+        }
+
+        function showAddCustomerModal() {
+            document.getElementById('addCustomerModal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        document.getElementById('addCustomerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            try {
+                const response = await fetch('/api/customer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    alert('Customer created successfully!');
+                    closeModal('addCustomerModal');
+                    e.target.reset();
+                    loadCustomers();
+                } else {
+                    const error = await response.json();
+                    alert(error.message || 'Error creating customer');
+                }
+            } catch (error) {
+                alert('Error creating customer');
+            }
+        });
+
+        function logout() {
+            fetch('/api/logout', { method: 'POST', credentials: 'include' })
+                .then(() => window.location.href = '/');
+        }
+
+        loadCustomers();
+    </script>
+</body>
+</html>
+

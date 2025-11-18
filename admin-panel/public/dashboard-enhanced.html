@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZarFinance - Admin Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+        }
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background: #2c3e50;
+            color: white;
+            padding: 20px 0;
+            overflow-y: auto;
+        }
+        .sidebar .logo {
+            padding: 0 20px 30px;
+            border-bottom: 1px solid #34495e;
+            margin-bottom: 20px;
+        }
+        .sidebar .logo h2 { font-size: 24px; }
+        .sidebar nav a {
+            display: block;
+            padding: 15px 20px;
+            color: #ecf0f1;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        .sidebar nav a:hover, .sidebar nav a.active {
+            background: #34495e;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stat-card h3 {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .stat-card .change {
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .stat-card .change.positive { color: #27ae60; }
+        .stat-card .change.negative { color: #e74c3c; }
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .chart-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .map-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            height: 400px;
+        }
+        .alert-panel {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .alert-panel h3 { margin-bottom: 10px; color: #856404; }
+        .alert-item {
+            padding: 10px;
+            background: white;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        th {
+            background: #34495e;
+            color: white;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-success { background: #27ae60; color: white; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-warning { background: #f39c12; color: white; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <img src="/assets/logo.svg" alt="ZarFinance" style="width: 40px; height: 40px; margin-right: 10px; vertical-align: middle;">
+            <h2 style="display: inline-block; vertical-align: middle;">ZarFinance</h2>
+        </div>
+        <nav>
+            <a href="/dashboard" class="active">Dashboard</a>
+            <a href="/devices">Devices</a>
+            <a href="/customers">Customers</a>
+            <a href="/payments">Payments</a>
+            <a href="/analytics">Analytics</a>
+            <a href="/plans">Financing Plans</a>
+            <a href="/support">Support Tickets</a>
+            <a href="/users">User Management</a>
+            <a href="/settings">Settings</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1>Dashboard Overview</h1>
+            <div>
+                <button class="btn btn-primary" onclick="refreshDashboard()">Refresh</button>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Active Devices</h3>
+                <div class="value" id="totalDevices">0</div>
+                <div class="change positive" id="devicesChange">+0 today</div>
+            </div>
+            <div class="stat-card">
+                <h3>Payment Compliance Rate</h3>
+                <div class="value" id="complianceRate">0%</div>
+                <div class="change" id="complianceChange">Target: 95%</div>
+            </div>
+            <div class="stat-card">
+                <h3>Today's Revenue</h3>
+                <div class="value" id="todayRevenue">₦0.00</div>
+                <div class="change positive" id="revenueChange">+0% vs yesterday</div>
+            </div>
+            <div class="stat-card">
+                <h3>Overdue Payments</h3>
+                <div class="value" id="overdueAmount">₦0.00</div>
+                <div class="change negative" id="overdueCount">0 devices</div>
+            </div>
+            <div class="stat-card">
+                <h3>Active Customers</h3>
+                <div class="value" id="totalCustomers">0</div>
+                <div class="change positive" id="customersChange">+0 this month</div>
+            </div>
+            <div class="stat-card">
+                <h3>System Health</h3>
+                <div class="value" id="systemHealth">100%</div>
+                <div class="change positive">All systems operational</div>
+            </div>
+        </div>
+
+        <!-- Alert Panel -->
+        <div class="alert-panel" id="alertPanel" style="display: none;">
+            <h3>⚠️ Overdue Payments Alert</h3>
+            <div id="alertList"></div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>Revenue Overview</h3>
+                <canvas id="revenueChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>Payment Compliance</h3>
+                <canvas id="complianceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Map View -->
+        <div class="map-container">
+            <h3>Device Locations Map</h3>
+            <div id="map" style="height: 350px; background: #ecf0f1; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                <p>Map integration - Add Google Maps or Leaflet here</p>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="chart-card">
+            <h3>Recent Activity</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Action</th>
+                        <th>User</th>
+                        <th>Resource</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="activityTable">
+                    <tr><td colspan="5">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let revenueChart, complianceChart;
+
+        async function loadDashboard() {
+            try {
+                const response = await fetch('/api/analytics/dashboard', {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+
+                // Update stats
+                document.getElementById('totalDevices').textContent = data.totalDevices || 0;
+                document.getElementById('activeDevices').textContent = data.activeDevices || 0;
+                document.getElementById('complianceRate').textContent = (data.complianceRate || 0).toFixed(1) + '%';
+                document.getElementById('todayRevenue').textContent = '₦' + (data.todayRevenue || 0).toLocaleString('en-NG', {minimumFractionDigits: 2});
+                document.getElementById('overdueAmount').textContent = '₦' + (data.overdueAmount || 0).toLocaleString('en-NG', {minimumFractionDigits: 2});
+                document.getElementById('totalCustomers').textContent = data.totalCustomers || 0;
+
+                // Show alerts if overdue
+                if (data.overdueAmount > 0) {
+                    document.getElementById('alertPanel').style.display = 'block';
+                    // Load overdue devices
+                    loadOverdueAlerts();
+                }
+
+                // Update charts
+                updateCharts(data);
+
+                // Update map
+                updateMap(data.locations || []);
+
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+
+        function updateCharts(data) {
+            // Revenue chart
+            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+            if (revenueChart) revenueChart.destroy();
+            revenueChart = new Chart(revenueCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Daily Revenue',
+                        data: [0, 0, 0, 0, 0, 0, 0], // Will be populated from API
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true
+                }
+            });
+
+            // Compliance chart
+            const complianceCtx = document.getElementById('complianceChart').getContext('2d');
+            if (complianceChart) complianceChart.destroy();
+            complianceChart = new Chart(complianceCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Compliant', 'Overdue'],
+                    datasets: [{
+                        data: [
+                            data.totalDevices - (data.lockedDevices || 0),
+                            data.lockedDevices || 0
+                        ],
+                        backgroundColor: ['#27ae60', '#e74c3c']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true
+                }
+            });
+        }
+
+        function updateMap(locations) {
+            // Map integration placeholder
+            // Integrate with Google Maps or Leaflet here
+            console.log('Locations to display:', locations);
+        }
+
+        async function loadOverdueAlerts() {
+            try {
+                const response = await fetch('/api/admin/devices?status=locked', {
+                    credentials: 'include'
+                });
+                const devices = await response.json();
+                
+                const alertList = document.getElementById('alertList');
+                alertList.innerHTML = devices.slice(0, 5).map(device => `
+                    <div class="alert-item">
+                        <strong>${device.deviceId}</strong> - ${device.customerName} - 
+                        Overdue: ₦${device.remainingBalance.toFixed(2)}
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading alerts:', error);
+            }
+        }
+
+        async function loadRecentActivity() {
+            try {
+                const response = await fetch('/api/admin/audit-logs?limit=10', {
+                    credentials: 'include'
+                });
+                const logs = await response.json();
+                
+                const tbody = document.getElementById('activityTable');
+                tbody.innerHTML = logs.map(log => `
+                    <tr>
+                        <td>${new Date(log.timestamp).toLocaleString()}</td>
+                        <td>${log.action}</td>
+                        <td>${log.userEmail}</td>
+                        <td>${log.resourceType}</td>
+                        <td><span class="badge badge-${log.status}">${log.status}</span></td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading activity:', error);
+            }
+        }
+
+        function refreshDashboard() {
+            loadDashboard();
+            loadRecentActivity();
+        }
+
+        function logout() {
+            fetch('/api/logout', { method: 'POST', credentials: 'include' })
+                .then(() => window.location.href = '/');
+        }
+
+        // Initialize
+        loadDashboard();
+        loadRecentActivity();
+        setInterval(refreshDashboard, 60000); // Refresh every minute
+    </script>
+</body>
+</html>
+
