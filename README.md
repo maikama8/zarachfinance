@@ -2,6 +2,16 @@
 
 A comprehensive mobile phone financing system for retail stores in Nigeria, featuring device admin controls, payment enforcement, and an integrated admin panel with backend API.
 
+## ⚠️ License
+
+**PROPRIETARY SOFTWARE** - All rights reserved by Zarachtech
+
+This software is proprietary and confidential. Unauthorized copying, modification, distribution, or use of this software, via any medium, is strictly prohibited without the prior written permission of Zarachtech.
+
+See [LICENSE](LICENSE) for full terms and conditions.
+
+For licensing inquiries, please contact: support@zarachtech.com
+
 ## Project Structure
 
 ```
