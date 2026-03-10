@@ -63,3 +63,5 @@ coverage/
 
 # Test related
 test/.test_coverage.dart
+.vscode/
+.kiro/
